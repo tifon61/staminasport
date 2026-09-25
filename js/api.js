@@ -20,18 +20,32 @@ const Api = {
 
   /** Trae todo: { stock: [...], consultas: [...] } */
   async listar() {
-    const res = await fetch(`${this.url}?key=${encodeURIComponent(this.key)}`);
+    const res = await this._fetch(`${this.url}?key=${encodeURIComponent(this.key)}`);
     return this._procesar(res);
   },
 
   /** Manda una acción al backend: addProduct, updateConsulta, etc. */
   async enviar(action, data) {
-    const res = await fetch(this.url, {
+    const res = await this._fetch(this.url, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ key: this.key, action, data }),
     });
     return this._procesar(res);
+  },
+
+  /**
+   * fetch con un mensaje de error entendible. Si el navegador bloquea la
+   * respuesta por CORS, casi siempre es porque Google devolvió una página de
+   * login o de error en vez de nuestro JSON (implementación mal configurada).
+   */
+  async _fetch(url, opciones) {
+    try {
+      return await fetch(url, opciones);
+    } catch {
+      throw new Error('No se pudo conectar con el Apps Script. Revisá que esté implementado como ' +
+        '"Aplicación web" con acceso "Cualquier usuario" (ver README).');
+    }
   },
 
   async _procesar(res) {

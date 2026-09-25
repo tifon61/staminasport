@@ -55,6 +55,17 @@ La URL del Apps Script ya está fija en `js/config.js`. Al abrir la página por 
 
 Si algún día creás una implementación nueva del Apps Script (con otra URL), actualizá `API_URL` en `js/config.js`. **La clave nunca la pongas en el código**: el repositorio es público.
 
+## Si algo falla
+
+**Error de CORS en la consola** (`No 'Access-Control-Allow-Origin' header`): abrí la URL `/exec` en una **ventana de incógnito** y fijate qué aparece:
+
+| Ves | Significa | Solución |
+|---|---|---|
+| `{"ok":false,"error":"Clave incorrecta"}` | El Apps Script anda bien | Revisá la clave en ⚙ |
+| Pantalla de login de Google | El acceso no es público | Implementar → Administrar implementaciones → ✏ → Quién tiene acceso: **Cualquier usuario** |
+| "No se encontró la función… doGet" | La implementación es de antes de pegar el código | Guardá el código y hacé **Nueva versión** |
+| "Se necesita autorización" | Falta dar permisos | Ejecutá `configurarInicial` desde el editor y aceptá |
+
 ## Cómo funciona (para aprender)
 
 - **Precio de venta** = `costo × (1 + porcentaje / 100)`. Ej: costo $10.000 con 50% → $15.000. Está en `precioVenta()` de `js/app.js`.
