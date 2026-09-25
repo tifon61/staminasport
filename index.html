@@ -2,21 +2,28 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#16181a">
+  <!-- Para poder "Agregar a pantalla de inicio" y usarla como una app -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Stamine">
+  <link rel="apple-touch-icon" href="imagenes/icon-192.png">
   <title>Stamine · Stock</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="icon" href="imagenes/Stamina%20logo.PNG">
+  <link rel="icon" href="imagenes/icon-192.png">
 </head>
 <body>
   <header class="topbar">
-    <img class="logo-img" src="imagenes/Stamina%20logo.PNG" alt="">
+    <img class="logo-img" src="imagenes/icon-192.png" alt="">
     <h1 class="logo">STAMINE</h1>
     <nav class="tabs">
-      <button class="tab active" data-tab="stock">Stock</button>
-      <button class="tab" data-tab="cargar">Cargar prenda</button>
-      <button class="tab" data-tab="consultas">Consultas</button>
+      <button class="tab active" data-tab="stock"><span class="tab-icono">👕</span><span>Stock</span></button>
+      <button class="tab" data-tab="cargar"><span class="tab-icono">➕</span><span>Cargar</span></button>
+      <button class="tab" data-tab="consultas"><span class="tab-icono">💬</span><span>Consultas</span></button>
     </nav>
     <button id="btn-config" class="icon-btn" title="Cambiar clave">⚙</button>
   </header>
@@ -32,15 +39,16 @@
       </div>
 
       <div class="filtros">
-        <input id="buscar" type="search" placeholder="Buscar por nombre, categoría, color…">
+        <input id="buscar" type="search" placeholder="Buscar por nombre, color, talle…">
+        <select id="filtro-categoria"><option value="">Todas las categorías</option></select>
         <select id="orden">
-          <option value="antiguas">Más antiguas primero</option>
-          <option value="recientes">Más recientes primero</option>
-          <option value="precio">Mayor precio de venta</option>
+          <option value="antiguas">Más antiguas</option>
+          <option value="recientes">Más recientes</option>
+          <option value="precio">Mayor precio</option>
           <option value="cantidad">Mayor cantidad</option>
         </select>
         <label class="check"><input id="ver-sin-stock" type="checkbox"> Ver sin stock</label>
-        <button id="btn-recargar" class="btn secundario">↻ Actualizar</button>
+        <button id="btn-recargar" class="btn secundario" title="Actualizar">↻<span class="solo-pc"> Actualizar</span></button>
       </div>
 
       <div id="lista-stock" class="grid"></div>
@@ -54,30 +62,38 @@
 
         <div class="fila">
           <label>Nombre *<input name="nombre" required placeholder="Ej: Buzo Nike Tech"></label>
-          <label>Categoría<input name="categoria" list="categorias" placeholder="Ej: Buzos"></label>
+          <label>Categoría
+            <select name="categoria"><option value="">Elegí una categoría</option></select>
+          </label>
         </div>
-        <datalist id="categorias"></datalist>
 
         <div class="fila">
           <label>Talle<input name="talle" placeholder="S, M, L, 42…"></label>
           <label>Color<input name="color" placeholder="Negro"></label>
-          <label>Cantidad *<input name="cantidad" type="number" min="0" step="1" value="1" required></label>
+          <label>Cantidad *<input name="cantidad" type="number" inputmode="numeric" min="0" step="1" value="1" required></label>
         </div>
 
         <div class="fila">
-          <label>Costo por unidad *<input name="costo" type="number" min="0" step="0.01" required placeholder="Lo que pagaste"></label>
-          <label>% de ganancia *<input name="porcentaje" type="number" min="0" step="1" value="60" required></label>
+          <label>Costo por unidad *<input name="costo" type="number" inputmode="decimal" min="0" step="0.01" required placeholder="Lo que pagaste"></label>
+          <label>% de ganancia *<input name="porcentaje" type="number" inputmode="numeric" min="0" step="1" value="60" required></label>
           <label>Fecha de compra<input name="fecha_ingreso" type="date"></label>
         </div>
 
         <div class="calculo">
-          Precio de venta: <strong id="calc-precio">$0</strong>
-          · Ganancia por unidad: <strong id="calc-ganancia">$0</strong>
+          <span>Precio de venta <strong id="calc-precio">$0</strong></span>
+          <span>Ganás por unidad <strong id="calc-ganancia">$0</strong></span>
         </div>
 
-        <label>Foto
-          <input name="foto" type="file" accept="image/*">
-        </label>
+        <!-- Los inputs reales están ocultos; tocar el label los activa.
+             capture="environment" abre directo la cámara trasera del celular. -->
+        <div class="foto-botones">
+          <label class="foto-btn">📷 Sacar foto
+            <input id="foto-camara" type="file" accept="image/*" capture="environment" hidden>
+          </label>
+          <label class="foto-btn">🖼️ Galería
+            <input id="foto-galeria" type="file" accept="image/*" hidden>
+          </label>
+        </div>
         <img id="preview-foto" class="preview" alt="" hidden>
 
         <label>Notas<textarea name="notas" rows="2" placeholder="Proveedor, detalles…"></textarea></label>
@@ -99,7 +115,7 @@
             <datalist id="productos-consultados"></datalist>
             <div class="fila">
               <label>Talle<input name="talle" placeholder="M"></label>
-              <label>Nº de consultas<input name="cantidad" type="number" min="1" value="1"></label>
+              <label>Nº de consultas<input name="cantidad" type="number" inputmode="numeric" min="1" value="1"></label>
             </div>
             <label>Notas<input name="notas" placeholder="Ej: la pidieron por Instagram"></label>
             <button type="submit" class="btn">Agregar</button>

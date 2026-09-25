@@ -61,6 +61,8 @@ h2 { margin: 0 0 12px; font-size: 1.3rem; }
   background: none; border: 0; color: #cfd3cc; cursor: pointer;
   padding: 8px 12px; border-radius: 8px; font: inherit; white-space: nowrap;
 }
+.tab { display: flex; align-items: center; gap: 6px; }
+.tab-icono { font-size: 1rem; }
 .tab.active { background: var(--acento); color: var(--acento-texto); font-weight: 600; }
 .icon-btn { background: none; border: 0; color: #fff; font-size: 1.4rem; cursor: pointer; }
 
@@ -99,7 +101,19 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--acento); bo
 
 .calculo {
   background: var(--fondo); border-radius: 8px; padding: 10px 12px; font-size: .95rem;
+  display: flex; gap: 8px 24px; flex-wrap: wrap;
 }
+.calculo span { display: flex; flex-direction: column; color: var(--texto-suave); font-size: .8rem; }
+.calculo strong { color: var(--texto); font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 500; }
+
+.foto-btn {
+  flex-direction: row; justify-content: center; align-items: center;
+  border: 2px dashed var(--borde); border-radius: var(--radio); padding: 18px;
+  color: var(--texto); font-weight: 600; font-size: 1rem; cursor: pointer;
+}
+.foto-botones { display: flex; gap: 10px; }
+.foto-botones .foto-btn { flex: 1; }
+.foto-btn:active { background: var(--fondo); }
 .preview { max-width: 200px; border-radius: 8px; }
 
 /* ---------- Resumen ---------- */
@@ -187,4 +201,76 @@ dialog::backdrop { background: rgba(0, 0, 0, .5); }
 .cargando {
   position: fixed; top: 70px; right: 16px; background: var(--acento); color: var(--acento-texto);
   padding: 6px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; z-index: 40;
+}
+
+/* ============================================================
+   CELULAR (pantallas de hasta 700px de ancho)
+   Todo lo de adentro de este @media solo se aplica en pantallas
+   angostas; en la compu se sigue viendo como antes.
+   ============================================================ */
+@media (max-width: 700px) {
+  /* Evita que el iPhone haga zoom al tocar un campo (lo hace si la letra es < 16px) */
+  input, select, textarea { font-size: 16px; }
+
+  main { padding: 12px 12px calc(84px + env(safe-area-inset-bottom)); }
+  h2 { font-size: 1.15rem; }
+
+  /* --- Barra superior compacta --- */
+  .topbar { padding: 8px 12px; padding-top: calc(8px + env(safe-area-inset-top)); gap: 10px; }
+  .logo-img { width: 40px; height: 40px; }
+  .logo { font-size: 1.35rem; flex: 1; }
+
+  /* --- Pestañas → barra de navegación abajo, al alcance del pulgar --- */
+  .tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    background: var(--oscuro); gap: 0; overflow: visible;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    border-top: 1px solid #2c3033;
+  }
+  .tab {
+    flex: 1; flex-direction: column; gap: 2px; justify-content: center;
+    padding: 6px 4px; font-size: .75rem; border-radius: 10px;
+  }
+  .tab-icono { font-size: 1.35rem; }
+
+  /* --- Resumen: 2×2 más compacto --- */
+  .resumen { grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .tile { padding: 10px 12px; }
+  .tile-valor { font-size: 1.25rem; }
+
+  /* --- Filtros --- */
+  .filtros { gap: 8px; }
+  .filtros input[type=search] { flex-basis: 100%; min-width: 0; }
+  .filtros select { flex: 1; min-width: 0; }
+  .solo-pc { display: none; }
+
+  /* --- Tarjeta de prenda horizontal: foto chica a la izquierda --- */
+  .grid { grid-template-columns: 1fr; gap: 10px; }
+  .prenda {
+    display: grid; grid-template-columns: 96px 1fr;
+    grid-template-areas: "foto cuerpo" "acciones acciones";
+  }
+  .prenda-foto {
+    grid-area: foto; width: 96px; height: 96px; aspect-ratio: 1;
+    margin: 12px 0 0 12px; border-radius: 8px; font-size: 1.6rem;
+  }
+  .prenda-cuerpo { grid-area: cuerpo; padding: 12px; gap: 4px; }
+  .precio { font-size: 1.3rem; line-height: 1.1; }
+  .detalle { font-size: .8rem; }
+  .prenda .acciones { grid-area: acciones; padding: 0 12px 12px; }
+  .prenda .acciones .btn { flex: 1; padding: 10px 6px; font-size: .85rem; } /* botones grandes para el dedo */
+
+  /* --- Formularios --- */
+  .card { padding: 14px; }
+  .fila { gap: 10px; }
+  .fila > label { min-width: calc(50% - 5px); }
+  .form .acciones .btn, .form > .btn { flex: 1; padding: 14px; font-size: 1rem; }
+
+  /* --- Consultas --- */
+  .lista li { gap: 6px; }
+  .lista-texto { flex-basis: 100%; }
+  .lista .btn { flex: 1; padding: 9px 6px; }
+
+  .toast { bottom: calc(84px + env(safe-area-inset-bottom)); }
+  .cargando { top: auto; bottom: calc(84px + env(safe-area-inset-bottom)); right: 12px; }
 }

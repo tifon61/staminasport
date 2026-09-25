@@ -139,10 +139,12 @@ function renderStock() {
   const texto = $('#buscar').value.trim().toLowerCase();
   const verSinStock = $('#ver-sin-stock').checked;
   const orden = $('#orden').value;
+  const categoria = $('#filtro-categoria').value;
 
   // filter → quedarnos con las que coinciden
   let lista = estado.stock.filter((p) => {
     if (!verSinStock && Number(p.cantidad) <= 0) return false;
+    if (categoria && p.categoria !== categoria) return false;
     const blob = `${p.nombre} ${p.categoria} ${p.color} ${p.talle}`.toLowerCase();
     return blob.includes(texto);
   });
@@ -216,7 +218,7 @@ $('#lista-stock').addEventListener('click', async (e) => {
   cargarDatos();
 });
 
-['#buscar', '#orden', '#ver-sin-stock'].forEach((s) => $(s).addEventListener('input', renderStock));
+['#buscar', '#orden', '#ver-sin-stock', '#filtro-categoria'].forEach((s) => $(s).addEventListener('input', renderStock));
 $('#btn-recargar').addEventListener('click', cargarDatos);
 
 // ---------- 4. Formulario de prendas ----------
@@ -254,15 +256,21 @@ function achicarFoto(archivo, maximo = 1000) {
   });
 }
 
-form.foto.addEventListener('change', () => {
-  const archivo = form.foto.files[0];
-  const prev = $('#preview-foto');
-  prev.hidden = !archivo;
-  if (archivo) prev.src = URL.createObjectURL(archivo);
-});
+// La foto puede venir de la cámara o de la galería: guardamos la última elegida.
+let fotoElegida = null;
+for (const input of [$('#foto-camara'), $('#foto-galeria')]) {
+  input.addEventListener('change', () => {
+    if (!input.files[0]) return;
+    fotoElegida = input.files[0];
+    $('#preview-foto').src = URL.createObjectURL(fotoElegida);
+    $('#preview-foto').hidden = false;
+    input.value = ''; // permite volver a elegir la misma foto si hace falta
+  });
+}
 
 function resetForm() {
   form.reset();
+  fotoElegida = null;
   form.elements.id.value = '';
   form.fecha_ingreso.value = hoyISO();
   $('#preview-foto').hidden = true;
@@ -292,11 +300,10 @@ form.addEventListener('submit', async (e) => {
   try {
     // FormData lee todos los campos del form; lo pasamos a objeto común.
     const datos = Object.fromEntries(new FormData(form));
-    delete datos.foto;
     datos.cantidad = Number(datos.cantidad);
     datos.costo = Number(datos.costo);
     datos.porcentaje = Number(datos.porcentaje);
-    if (form.foto.files[0]) datos.foto_base64 = await achicarFoto(form.foto.files[0]);
+    if (fotoElegida) datos.foto_base64 = await achicarFoto(fotoElegida);
 
     const editando = Boolean(datos.id);
     if (!editando) delete datos.id;
@@ -376,8 +383,22 @@ function renderRanking() {
 function renderSugerencias() {
   const productos = new Set(estado.consultas.map((c) => c.producto));
   $('#productos-consultados').innerHTML = [...productos].map((p) => `<option value="${esc(p)}">`).join('');
-  const categorias = new Set(estado.stock.map((p) => p.categoria).filter(Boolean));
-  $('#categorias').innerHTML = [...categorias].map((c) => `<option value="${esc(c)}">`).join('');
+  // Categorías: las de config.js + las que ya estén usadas en el Sheet
+  // (así una prenda vieja con otra categoría no la pierde al editarla).
+  const categorias = [...new Set([
+    ...CONFIG.CATEGORIAS,
+    ...estado.stock.map((p) => p.categoria).filter(Boolean),
+  ])];
+  llenarSelect(form.categoria, categorias, 'Elegí una categoría');
+  llenarSelect($('#filtro-categoria'), categorias, 'Todas las categorías');
+}
+
+/** Rellena un <select> con opciones, sin perder lo que estaba elegido. */
+function llenarSelect(select, opciones, textoVacio) {
+  const elegido = select.value;
+  select.innerHTML = `<option value="">${textoVacio}</option>` +
+    opciones.map((o) => `<option value="${esc(o)}">${esc(o)}</option>`).join('');
+  select.value = elegido;
 }
 
 formConsulta.addEventListener('submit', async (e) => {
@@ -420,5 +441,6 @@ $('#dlg-config').addEventListener('close', () => {
   cargarDatos();
 });
 
+renderSugerencias(); // llena los selectores de categoría antes de que lleguen los datos
 resetForm();
 cargarDatos();
