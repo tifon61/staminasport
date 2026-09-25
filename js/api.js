@@ -12,11 +12,11 @@
  * ============================================================
  */
 const Api = {
-  // URL y clave: primero lo guardado en el navegador, si no, config.js
-  get url() { return localStorage.getItem('stamina_url') || CONFIG.API_URL; },
+  // La URL es fija (config.js). La clave se guarda solo en este navegador.
+  get url() { return CONFIG.API_URL; },
   get key() { return localStorage.getItem('stamina_key') || ''; },
 
-  configurado() { return Boolean(this.url && this.key); },
+  configurado() { return Boolean(this.key); },
 
   /** Trae todo: { stock: [...], consultas: [...] } */
   async listar() {

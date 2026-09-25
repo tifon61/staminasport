@@ -18,7 +18,7 @@
       <button class="tab" data-tab="cargar">Cargar prenda</button>
       <button class="tab" data-tab="consultas">Consultas</button>
     </nav>
-    <button id="btn-config" class="icon-btn" title="Configuración">⚙</button>
+    <button id="btn-config" class="icon-btn" title="Cambiar clave">⚙</button>
   </header>
 
   <main>
@@ -123,10 +123,9 @@
   <!-- ==================== CONFIGURACIÓN ==================== -->
   <dialog id="dlg-config">
     <form method="dialog" id="form-config" class="form">
-      <h2>Configuración</h2>
-      <p class="ayuda">Se guarda solo en este navegador. Mirá el README para saber de dónde sacar estos datos.</p>
-      <label>URL del Apps Script<input name="url" placeholder="https://script.google.com/macros/s/.../exec" required></label>
-      <label>Clave (API_KEY)<input name="key" type="password" required></label>
+      <h2>Ingresá tu clave</h2>
+      <p class="ayuda">Es la API_KEY que pusiste en el Apps Script. Se guarda solo en este navegador.</p>
+      <label>Clave<input name="key" type="password" autocomplete="current-password" required autofocus></label>
       <div class="acciones">
         <button class="btn" value="ok">Guardar</button>
         <button class="btn secundario" value="cancel" formnovalidate>Cerrar</button>

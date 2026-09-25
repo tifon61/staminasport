@@ -51,9 +51,9 @@ Navegador (GitHub Pages)  ──fetch──▶  Apps Script (doGet / doPost)  �
 
 ### 4. Conectar la página con tu Sheet
 
-Abrí la página, tocá **⚙** y pegá la URL `/exec` y tu clave. Se guardan en ese navegador (tenés que hacerlo una vez en cada dispositivo: celu, compu…).
+La URL del Apps Script ya está fija en `js/config.js`. Al abrir la página por primera vez en cada dispositivo te pide solo la **clave** (la `API_KEY`); queda guardada en ese navegador. Para cambiarla, tocá **⚙**.
 
-Opcional: pegá la URL en `js/config.js` para que ya venga cargada. **La clave nunca la pongas en el código**: el repositorio es público.
+Si algún día creás una implementación nueva del Apps Script (con otra URL), actualizá `API_URL` en `js/config.js`. **La clave nunca la pongas en el código**: el repositorio es público.
 
 ## Cómo funciona (para aprender)
 

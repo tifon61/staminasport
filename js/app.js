@@ -83,6 +83,8 @@ async function conCarga(fn) {
     return await fn();
   } catch (err) {
     toast(err.message, true);
+    // Si la clave está mal, volvemos a pedirla.
+    if (err.message === 'Clave incorrecta') pedirClave();
     throw err;
   } finally {
     $('#cargando').hidden = true;
@@ -100,11 +102,13 @@ document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () 
 // ---------- 3. Stock ----------
 
 async function cargarDatos() {
-  if (!Api.configurado()) {
-    $('#dlg-config').showModal();
-    return;
+  if (!Api.configurado()) return pedirClave();
+  let datos;
+  try {
+    datos = await conCarga(() => Api.listar());
+  } catch {
+    return; // conCarga ya mostró el error
   }
-  const datos = await conCarga(() => Api.listar());
   estado.stock = datos.stock;
   estado.consultas = datos.consultas;
   renderTodo();
@@ -403,18 +407,16 @@ $('#lista-consultas').addEventListener('click', async (e) => {
 
 // ---------- 6. Configuración e inicio ----------
 
-$('#btn-config').addEventListener('click', () => {
-  const f = $('#form-config');
-  f.url.value = Api.url;
-  f.key.value = Api.key;
+function pedirClave() {
+  if ($('#dlg-config').open) return;
+  $('#form-config').key.value = Api.key;
   $('#dlg-config').showModal();
-});
+}
+$('#btn-config').addEventListener('click', pedirClave);
 
 $('#dlg-config').addEventListener('close', () => {
   if ($('#dlg-config').returnValue !== 'ok') return;
-  const f = $('#form-config');
-  localStorage.setItem('stamina_url', f.url.value.trim());
-  localStorage.setItem('stamina_key', f.key.value.trim());
+  localStorage.setItem('stamina_key', $('#form-config').key.value.trim());
   cargarDatos();
 });
 
