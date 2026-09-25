@@ -72,6 +72,7 @@ Si algún día creás una implementación nueva del Apps Script (con otra URL), 
 - **Antigüedad**: se guarda la fecha de compra y la página calcula los días hasta hoy (`diasDesde()`). Verde < 30 días, amarillo < 90, rojo si hace más de 3 meses: son las prendas a liquidar.
 - **Fotos**: antes de subirlas, la página las achica a 1000px con un `<canvas>` (`achicarFoto()`) para que el envío sea rápido. Apps Script las guarda en Drive y devuelve un link.
 - **CORS**: la página y Apps Script están en dominios distintos. Por eso los POST se mandan como `text/plain` (ver comentario en `js/api.js`).
+- **Ventas**: el botón **Vender** de cada prenda registra la venta en la hoja *Ventas* (fecha, cantidad, precio real cobrado y costo) y descuenta el stock, todo junto. En la pestaña **Ventas** elegís *Mes* o *Año* y ves prendas vendidas, facturado, costo y ganancia, un gráfico de los últimos 12 meses, los más vendidos y el detalle. **Anular** una venta la borra y devuelve las prendas al stock.
 - **Qué comprar**: agrupa las consultas pendientes por nombre de producto, suma cuántas veces te lo pidieron y lo ordena de mayor a menor. También te avisa si ya tenés algo con ese nombre en stock.
 - **Seguridad**: la `API_KEY` evita que cualquiera que encuentre la URL modifique tus datos. Es una protección básica, suficiente para un uso personal.
 

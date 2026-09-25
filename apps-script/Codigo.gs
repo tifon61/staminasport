@@ -12,6 +12,7 @@
  *  Hojas que usa (se crean solas la primera vez):
  *  - "Stock":     las prendas que compraste.
  *  - "Consultas": lo que te preguntan los clientes.
+ *  - "Ventas":    cada venta, con fecha y precio (para el historial).
  *  Las fotos se guardan en una carpeta de Google Drive.
  * ============================================================
  */
@@ -28,6 +29,10 @@ const HOJAS = {
   Stock: ['id', 'fecha_ingreso', 'nombre', 'categoria', 'talle', 'color',
           'cantidad', 'costo', 'porcentaje', 'foto_url', 'notas'],
   Consultas: ['id', 'fecha', 'producto', 'talle', 'cantidad', 'notas', 'estado'],
+  // En cada venta copiamos nombre, categoría y costo de la prenda: así el
+  // historial no cambia aunque después edites o borres la prenda del stock.
+  Ventas: ['id', 'fecha', 'producto_id', 'nombre', 'categoria', 'talle',
+           'cantidad', 'precio_unitario', 'costo_unitario', 'notas'],
 };
 
 // ------------------------------------------------------------
@@ -40,6 +45,7 @@ function doGet(e) {
     return {
       stock: leerHoja('Stock'),
       consultas: leerHoja('Consultas'),
+      ventas: leerHoja('Ventas'),
     };
   });
 }
@@ -74,6 +80,12 @@ function doPost(e) {
 
       case 'deleteConsulta':
         return borrarFila('Consultas', d.id);
+
+      case 'registrarVenta':
+        return registrarVenta(d);
+
+      case 'deleteVenta':
+        return anularVenta(d.id);
 
       default:
         throw new Error('Acción desconocida: ' + body.action);
@@ -149,6 +161,69 @@ function buscarFila(hoja, id) {
     if (ids[i][0] === id) return i + 1;
   }
   throw new Error('No se encontró el registro ' + id);
+}
+
+/** Devuelve { numFila, obj } de un registro buscado por id. */
+function leerRegistro(nombre, id) {
+  const hoja = obtenerHoja(nombre);
+  const numFila = buscarFila(hoja, id);
+  const fila = hoja.getRange(numFila, 1, 1, HOJAS[nombre].length).getValues()[0];
+  const obj = {};
+  HOJAS[nombre].forEach((col, i) => (obj[col] = fila[i]));
+  return { numFila, obj };
+}
+
+// ------------------------------------------------------------
+//  Ventas
+// ------------------------------------------------------------
+
+/**
+ * Registra una venta y descuenta el stock, las dos cosas juntas.
+ * LockService evita que dos ventas simultáneas (ej: desde el celu y la compu)
+ * lean el mismo stock y se pisen entre sí.
+ */
+function registrarVenta(d) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const prenda = leerRegistro('Stock', d.producto_id).obj;
+    const cantidad = Number(d.cantidad) || 1;
+    if (Number(prenda.cantidad) < cantidad) {
+      throw new Error('No hay stock suficiente de "' + prenda.nombre + '" (quedan ' + prenda.cantidad + ')');
+    }
+    actualizarFila('Stock', prenda.id, { cantidad: Number(prenda.cantidad) - cantidad });
+    return agregarFila('Ventas', {
+      fecha: d.fecha || hoy(),
+      producto_id: prenda.id,
+      nombre: prenda.nombre,
+      categoria: prenda.categoria,
+      talle: prenda.talle,
+      cantidad: cantidad,
+      precio_unitario: Number(d.precio_unitario),
+      costo_unitario: Number(prenda.costo),
+      notas: d.notas || '',
+    });
+  } finally {
+    lock.releaseLock();
+  }
+}
+
+/** Borra una venta cargada por error y devuelve las unidades al stock. */
+function anularVenta(id) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const venta = leerRegistro('Ventas', id).obj;
+    try {
+      const prenda = leerRegistro('Stock', venta.producto_id).obj;
+      actualizarFila('Stock', prenda.id, { cantidad: Number(prenda.cantidad) + Number(venta.cantidad) });
+    } catch (e) {
+      // La prenda ya no existe en el stock: solo borramos la venta.
+    }
+    return borrarFila('Ventas', id);
+  } finally {
+    lock.releaseLock();
+  }
 }
 
 // ------------------------------------------------------------

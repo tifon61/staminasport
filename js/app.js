@@ -8,14 +8,15 @@
  *   3. Stock: resumen + tarjetas
  *   4. Formulario de carga/edición de prendas
  *   5. Consultas y ranking "Qué comprar"
- *   6. Configuración e inicio
+ *   6. Ventas: registrar e historial por período
+ *   7. Configuración e inicio
  * ============================================================
  */
 
 // ---------- 1. Estado y utilidades ----------
 
 // "estado" guarda los datos que vinieron del Sheet.
-const estado = { stock: [], consultas: [] };
+const estado = { stock: [], consultas: [], ventas: [] };
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -111,6 +112,7 @@ async function cargarDatos() {
   }
   estado.stock = datos.stock;
   estado.consultas = datos.consultas;
+  estado.ventas = datos.ventas || []; // || [] por si el Apps Script es una versión vieja
   renderTodo();
 }
 
@@ -119,6 +121,7 @@ function renderTodo() {
   renderStock();
   renderConsultas();
   renderSugerencias();
+  renderVentas();
 }
 
 function renderResumen() {
@@ -189,7 +192,7 @@ function tarjetaPrenda(p) {
         <span class="badge ${claseAntiguedad(dias)}" title="Ingresó el ${esc(p.fecha_ingreso)}">⏱ ${textoAntiguedad(dias)}</span>
       </div>
       <div class="acciones">
-        <button class="btn chico" data-accion="vender" data-id="${p.id}" ${cant <= 0 ? 'disabled' : ''}>Vendí 1</button>
+        <button class="btn chico" data-accion="vender" data-id="${p.id}" ${cant <= 0 ? 'disabled' : ''}>Vender</button>
         <button class="btn chico secundario" data-accion="editar" data-id="${p.id}">Editar</button>
         <button class="btn chico secundario peligro" data-accion="borrar" data-id="${p.id}">Borrar</button>
       </div>
@@ -204,11 +207,7 @@ $('#lista-stock').addEventListener('click', async (e) => {
 
   if (btn.dataset.accion === 'editar') return editarPrenda(prenda);
 
-  if (btn.dataset.accion === 'vender') {
-    btn.disabled = true;
-    await conCarga(() => Api.enviar('updateProduct', { id: prenda.id, cantidad: Number(prenda.cantidad) - 1 }));
-    toast(`Vendiste 1 "${prenda.nombre}"`);
-  }
+  if (btn.dataset.accion === 'vender') return abrirVenta(prenda);
 
   if (btn.dataset.accion === 'borrar') {
     if (!confirm(`¿Borrar "${prenda.nombre}"?`)) return;
@@ -426,7 +425,237 @@ $('#lista-consultas').addEventListener('click', async (e) => {
   cargarDatos();
 });
 
-// ---------- 6. Configuración e inicio ----------
+// ---------- 6. Ventas ----------
+
+// --- 6a. Registrar una venta ---
+
+const formVenta = $('#form-venta');
+let prendaEnVenta = null;
+
+function abrirVenta(prenda) {
+  prendaEnVenta = prenda;
+  formVenta.reset();
+  $('#venta-nombre').textContent = prenda.nombre;
+  $('#venta-disponible').textContent = `Quedan ${prenda.cantidad} en stock · precio sugerido ${plata.format(precioVenta(prenda.costo, prenda.porcentaje))}`;
+  formVenta.cantidad.max = prenda.cantidad;
+  // Precio sugerido redondeado; lo podés cambiar si hiciste descuento.
+  formVenta.precio_unitario.value = Math.round(precioVenta(prenda.costo, prenda.porcentaje));
+  formVenta.fecha.value = hoyISO();
+  calcularVenta();
+  $('#dlg-venta').showModal();
+}
+
+function calcularVenta() {
+  if (!prendaEnVenta) return;
+  const cant = Number(formVenta.cantidad.value) || 0;
+  const precio = Number(formVenta.precio_unitario.value) || 0;
+  $('#venta-total').textContent = plata.format(cant * precio);
+  $('#venta-ganancia').textContent = plata.format(cant * (precio - Number(prendaEnVenta.costo)));
+}
+formVenta.cantidad.addEventListener('input', calcularVenta);
+formVenta.precio_unitario.addEventListener('input', calcularVenta);
+
+$('#dlg-venta').addEventListener('close', async () => {
+  if ($('#dlg-venta').returnValue !== 'ok') return;
+  const datos = Object.fromEntries(new FormData(formVenta));
+  datos.producto_id = prendaEnVenta.id;
+  datos.cantidad = Number(datos.cantidad);
+  datos.precio_unitario = Number(datos.precio_unitario);
+  await conCarga(() => Api.enviar('registrarVenta', datos));
+  toast(`Venta registrada: ${datos.cantidad} × ${prendaEnVenta.nombre} ✔`);
+  cargarDatos();
+});
+
+// --- 6b. Historial por período ---
+
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio',
+  'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+// Período elegido. mes va de 0 (enero) a 11 (diciembre), como en JavaScript.
+const periodo = { modo: 'mes', anio: new Date().getFullYear(), mes: new Date().getMonth() };
+
+/** "2026-09" → clave de mes para agrupar. */
+const claveMes = (anio, mes) => `${anio}-${String(mes + 1).padStart(2, '0')}`;
+
+const totalVenta = (v) => Number(v.cantidad) * Number(v.precio_unitario);
+const gananciaVenta = (v) => Number(v.cantidad) * (Number(v.precio_unitario) - Number(v.costo_unitario));
+
+/** Ventas que caen dentro del período elegido. */
+function ventasDelPeriodo() {
+  const prefijo = periodo.modo === 'mes' ? claveMes(periodo.anio, periodo.mes) : String(periodo.anio);
+  return estado.ventas.filter((v) => String(v.fecha).startsWith(prefijo));
+}
+
+function renderVentas() {
+  $('#periodo-titulo').textContent = periodo.modo === 'mes'
+    ? `${MESES[periodo.mes]} ${periodo.anio}` : `Año ${periodo.anio}`;
+
+  const ventas = ventasDelPeriodo();
+  // reduce: recorre la lista acumulando un resultado (acá, sumas).
+  const unidades = ventas.reduce((s, v) => s + Number(v.cantidad), 0);
+  const facturado = ventas.reduce((s, v) => s + totalVenta(v), 0);
+  const ganancia = ventas.reduce((s, v) => s + gananciaVenta(v), 0);
+  $('#v-unidades').textContent = unidades;
+  $('#v-facturado').textContent = plata.format(facturado);
+  $('#v-costo').textContent = plata.format(facturado - ganancia);
+  $('#v-ganancia').textContent = plata.format(ganancia);
+
+  renderGrafico();
+  renderMasVendidos(ventas);
+  renderListaVentas(ventas);
+}
+
+/**
+ * Gráfico de barras hecho a mano con SVG (sin librerías).
+ * - Modo "mes": los 12 meses que terminan en el mes elegido.
+ * - Modo "año": los 12 meses del año elegido.
+ * Tocar una barra elige ese mes.
+ */
+function renderGrafico() {
+  const meses = [];
+  for (let i = 11; i >= 0; i--) {
+    const d = periodo.modo === 'mes'
+      ? new Date(periodo.anio, periodo.mes - i, 1)
+      : new Date(periodo.anio, 11 - i, 1);
+    meses.push({ anio: d.getFullYear(), mes: d.getMonth(), total: 0, unidades: 0 });
+  }
+  const porClave = new Map(meses.map((m) => [claveMes(m.anio, m.mes), m]));
+  for (const v of estado.ventas) {
+    const m = porClave.get(String(v.fecha).slice(0, 7));
+    if (m) { m.total += totalVenta(v); m.unidades += Number(v.cantidad); }
+  }
+
+  $('#grafico-sub').textContent = periodo.modo === 'mes'
+    ? 'Últimos 12 meses · tocá una barra para ver ese mes' : `Año ${periodo.anio} · tocá una barra para ver ese mes`;
+
+  // Medidas del dibujo (el SVG se estira al ancho disponible con viewBox)
+  const W = 600, H = 200, arriba = 22, abajo = 24;
+  const alto = H - arriba - abajo;
+  const max = Math.max(...meses.map((m) => m.total), 1);
+  const paso = W / meses.length;
+  const ancho = Math.min(paso - 6, 32);
+
+  const barras = meses.map((m, i) => {
+    const elegido = periodo.modo === 'mes' && m.anio === periodo.anio && m.mes === periodo.mes;
+    const h = m.total > 0 ? Math.max(3, (m.total / max) * alto) : 0;
+    const x = i * paso + (paso - ancho) / 2;
+    const y = arriba + alto - h;
+    const r = Math.min(4, h); // puntas redondeadas arriba, base recta
+    const forma = h > 0
+      ? `<path class="barra-g ${elegido ? 'elegida' : ''}" d="M${x},${y + h} V${y + r} Q${x},${y} ${x + r},${y} H${x + ancho - r} Q${x + ancho},${y} ${x + ancho},${y + r} V${y + h} Z"/>`
+      : '';
+    // En las barras de los bordes alineamos el texto hacia adentro para que no se corte.
+    const [tx, anclaje] = i >= 10 ? [x + ancho, 'end'] : i <= 1 ? [x, 'start'] : [x + ancho / 2, 'middle'];
+    const etiqueta = elegido && m.total > 0
+      ? `<text class="valor-g" x="${tx}" y="${y - 6}" text-anchor="${anclaje}">${plata.format(m.total)}</text>` : '';
+    return `
+      <g class="col-g" data-anio="${m.anio}" data-mes="${m.mes}" data-total="${m.total}" data-unidades="${m.unidades}">
+        <rect x="${i * paso}" y="0" width="${paso}" height="${H}" fill="transparent"/>
+        ${forma}${etiqueta}
+        <text class="eje-g ${elegido ? 'elegida' : ''}" x="${i * paso + paso / 2}" y="${H - 6}" text-anchor="middle">${MESES[m.mes].slice(0, 3)}</text>
+      </g>`;
+  }).join('');
+
+  $('#grafico').innerHTML = `
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Facturado por mes">
+      <line class="base-g" x1="0" x2="${W}" y1="${arriba + alto}" y2="${arriba + alto}"/>
+      ${barras}
+    </svg>
+    <div class="tooltip-g" hidden></div>`;
+}
+
+// Tooltip al pasar el mouse (o tocar) una barra, y clic para elegir ese mes.
+$('#grafico').addEventListener('pointermove', (e) => {
+  const col = e.target.closest('.col-g');
+  const tip = $('#grafico .tooltip-g');
+  if (!col || !tip) return;
+  const caja = $('#grafico').getBoundingClientRect();
+  tip.innerHTML = `<strong>${MESES[col.dataset.mes]} ${col.dataset.anio}</strong><br>
+    ${plata.format(col.dataset.total)} · ${col.dataset.unidades} prendas`;
+  tip.hidden = false;
+  const x = Math.min(Math.max(e.clientX - caja.left, 70), caja.width - 70);
+  tip.style.left = `${x}px`;
+});
+$('#grafico').addEventListener('pointerleave', () => {
+  const tip = $('#grafico .tooltip-g');
+  if (tip) tip.hidden = true;
+});
+$('#grafico').addEventListener('click', (e) => {
+  const col = e.target.closest('.col-g');
+  if (!col) return;
+  Object.assign(periodo, { modo: 'mes', anio: Number(col.dataset.anio), mes: Number(col.dataset.mes) });
+  actualizarSegmento();
+  renderVentas();
+});
+
+function renderMasVendidos(ventas) {
+  const grupos = new Map();
+  for (const v of ventas) {
+    const k = clave(v.nombre);
+    const g = grupos.get(k) || { nombre: v.nombre, unidades: 0, total: 0 };
+    g.unidades += Number(v.cantidad);
+    g.total += totalVenta(v);
+    grupos.set(k, g);
+  }
+  const top = [...grupos.values()].sort((a, b) => b.total - a.total).slice(0, 10);
+  const max = top[0]?.total || 1;
+  $('#mas-vendidos').innerHTML = top.length ? top.map((g) => `
+    <li>
+      <div style="flex:1">
+        <strong>${esc(g.nombre)}</strong>
+        <small class="prenda-meta"> · ${g.unidades} u.</small>
+        <div class="barra" style="width:${(g.total / max) * 100}%"></div>
+      </div>
+      <span class="num">${plata.format(g.total)}</span>
+    </li>`).join('') : '<li class="vacio" style="display:block">Sin ventas en este período.</li>';
+}
+
+function renderListaVentas(ventas) {
+  const lista = [...ventas].sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)));
+  $('#lista-ventas').innerHTML = lista.length ? lista.map((v) => `
+    <li>
+      <span class="lista-texto">
+        <strong>${esc(v.nombre)}</strong> ${v.talle ? `(talle ${esc(v.talle)})` : ''} — ${Number(v.cantidad)} × ${plata.format(v.precio_unitario)}
+        <small>${esc(v.fecha)} · Total ${plata.format(totalVenta(v))} · Ganancia ${plata.format(gananciaVenta(v))}${v.notas ? ' · ' + esc(v.notas) : ''}</small>
+      </span>
+      <button class="btn chico secundario peligro" data-id="${v.id}" title="Anular venta (devuelve al stock)">Anular</button>
+    </li>`).join('') : '<li class="vacio">Sin ventas en este período.</li>';
+}
+
+$('#lista-ventas').addEventListener('click', async (e) => {
+  const btn = e.target.closest('button[data-id]');
+  if (!btn) return;
+  if (!confirm('¿Anular esta venta? Las prendas vuelven al stock.')) return;
+  btn.disabled = true;
+  await conCarga(() => Api.enviar('deleteVenta', { id: btn.dataset.id }));
+  toast('Venta anulada, stock devuelto');
+  cargarDatos();
+});
+
+// Navegación de períodos
+function moverPeriodo(delta) {
+  if (periodo.modo === 'anio') {
+    periodo.anio += delta;
+  } else {
+    const d = new Date(periodo.anio, periodo.mes + delta, 1); // Date resuelve el cambio de año solo
+    periodo.anio = d.getFullYear();
+    periodo.mes = d.getMonth();
+  }
+  renderVentas();
+}
+$('#periodo-ant').addEventListener('click', () => moverPeriodo(-1));
+$('#periodo-sig').addEventListener('click', () => moverPeriodo(1));
+
+function actualizarSegmento() {
+  document.querySelectorAll('.seg').forEach((b) => b.classList.toggle('active', b.dataset.modo === periodo.modo));
+}
+document.querySelectorAll('.seg').forEach((b) => b.addEventListener('click', () => {
+  periodo.modo = b.dataset.modo;
+  actualizarSegmento();
+  renderVentas();
+}));
+
+// ---------- 7. Configuración e inicio ----------
 
 function pedirClave() {
   if ($('#dlg-config').open) return;

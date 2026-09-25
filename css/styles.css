@@ -16,6 +16,7 @@
   --alerta: #d8a01c;
   --peligro: #d6453d;
   --radio: 12px;
+  --grafico: #7a9c12;      /* verde oliva: la lima pura casi no se ve sobre blanco */
 }
 
 @media (prefers-color-scheme: dark) {
@@ -26,6 +27,7 @@
     --texto-suave: #9aa1a8;
     --borde: #2c3033;
     --oscuro: #000;
+    --grafico: #c6f432;
   }
 }
 
@@ -185,6 +187,30 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--acento); bo
 .ranking .barra { height: 6px; background: var(--acento); border-radius: 3px; margin-top: 4px; }
 .ranking .num { font-family: 'Oswald', sans-serif; font-size: 1.3rem; }
 
+/* ---------- Ventas: período y gráfico ---------- */
+.periodo { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px; }
+.segmento { display: flex; background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; padding: 3px; }
+.seg { border: 0; background: none; color: var(--texto-suave); font: inherit; font-weight: 600; padding: 7px 16px; border-radius: 8px; cursor: pointer; }
+.seg.active { background: var(--oscuro); color: var(--acento); }
+.periodo-nav { display: flex; align-items: center; gap: 10px; }
+.periodo-nav strong { font-family: 'Oswald', sans-serif; font-size: 1.25rem; font-weight: 500; min-width: 150px; text-align: center; }
+.periodo-nav .btn { padding: 8px 14px; }
+
+.grafico { position: relative; }
+.grafico svg { width: 100%; height: auto; display: block; overflow: visible; }
+.col-g { cursor: pointer; }
+.barra-g { fill: var(--grafico); opacity: .45; transition: opacity .15s; }
+.barra-g.elegida, .col-g:hover .barra-g { opacity: 1; }
+.base-g { stroke: var(--borde); stroke-width: 1; }
+.eje-g { fill: var(--texto-suave); font-size: 12px; }
+.eje-g.elegida { fill: var(--texto); font-weight: 700; }
+.valor-g { fill: var(--texto); font-size: 12px; font-weight: 600; }
+.tooltip-g {
+  position: absolute; top: -8px; transform: translate(-50%, -100%); pointer-events: none;
+  background: var(--oscuro); color: #fff; padding: 6px 10px; border-radius: 8px; font-size: .8rem;
+  white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.2);
+}
+
 /* ---------- Diálogo, toast y carga ---------- */
 dialog {
   border: 0; border-radius: var(--radio); padding: 20px; width: min(480px, 92vw);
@@ -265,6 +291,12 @@ dialog::backdrop { background: rgba(0, 0, 0, .5); }
   .fila { gap: 10px; }
   .fila > label { min-width: calc(50% - 5px); }
   .form .acciones .btn, .form > .btn { flex: 1; padding: 14px; font-size: 1rem; }
+
+  /* --- Ventas --- */
+  .periodo { flex-direction: column; align-items: stretch; }
+  .segmento .seg { flex: 1; }
+  .periodo-nav { justify-content: space-between; }
+  .eje-g, .valor-g { font-size: 16px; } /* el SVG se achica en celu: letras más grandes para compensar */
 
   /* --- Consultas --- */
   .lista li { gap: 6px; }

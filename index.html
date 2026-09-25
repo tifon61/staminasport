@@ -23,6 +23,7 @@
     <nav class="tabs">
       <button class="tab active" data-tab="stock"><span class="tab-icono">👕</span><span>Stock</span></button>
       <button class="tab" data-tab="cargar"><span class="tab-icono">➕</span><span>Cargar</span></button>
+      <button class="tab" data-tab="ventas"><span class="tab-icono">💰</span><span>Ventas</span></button>
       <button class="tab" data-tab="consultas"><span class="tab-icono">💬</span><span>Consultas</span></button>
     </nav>
     <button id="btn-config" class="icon-btn" title="Cambiar clave">⚙</button>
@@ -105,6 +106,45 @@
       </form>
     </section>
 
+    <!-- ==================== VENTAS ==================== -->
+    <section id="ventas" class="panel">
+      <div class="periodo">
+        <div class="segmento" role="group" aria-label="Agrupar por">
+          <button class="seg active" data-modo="mes">Mes</button>
+          <button class="seg" data-modo="anio">Año</button>
+        </div>
+        <div class="periodo-nav">
+          <button id="periodo-ant" class="btn secundario" aria-label="Período anterior">◀</button>
+          <strong id="periodo-titulo"></strong>
+          <button id="periodo-sig" class="btn secundario" aria-label="Período siguiente">▶</button>
+        </div>
+      </div>
+
+      <div class="resumen">
+        <div class="tile"><span class="tile-label">Prendas vendidas</span><span id="v-unidades" class="tile-valor">0</span></div>
+        <div class="tile"><span class="tile-label">Facturado</span><span id="v-facturado" class="tile-valor">$0</span></div>
+        <div class="tile"><span class="tile-label">Costo de lo vendido</span><span id="v-costo" class="tile-valor">$0</span></div>
+        <div class="tile destacado"><span class="tile-label">Ganancia</span><span id="v-ganancia" class="tile-valor">$0</span></div>
+      </div>
+
+      <div class="card">
+        <h2>Facturado por mes</h2>
+        <p class="ayuda" id="grafico-sub"></p>
+        <div id="grafico" class="grafico"></div>
+      </div>
+
+      <div class="dos-columnas">
+        <div class="card">
+          <h2>🏆 Más vendidos</h2>
+          <ol id="mas-vendidos" class="ranking"></ol>
+        </div>
+        <div class="card">
+          <h2>Detalle de ventas</h2>
+          <ul id="lista-ventas" class="lista"></ul>
+        </div>
+      </div>
+    </section>
+
     <!-- ==================== CONSULTAS ==================== -->
     <section id="consultas" class="panel">
       <div class="dos-columnas">
@@ -145,6 +185,30 @@
       <div class="acciones">
         <button class="btn" value="ok">Guardar</button>
         <button class="btn secundario" value="cancel" formnovalidate>Cerrar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- ==================== REGISTRAR VENTA ==================== -->
+  <dialog id="dlg-venta">
+    <form method="dialog" id="form-venta" class="form">
+      <h2>Vender: <span id="venta-nombre"></span></h2>
+      <p class="ayuda" id="venta-disponible"></p>
+      <div class="fila">
+        <label>Cantidad<input name="cantidad" type="number" inputmode="numeric" min="1" step="1" value="1" required></label>
+        <label>Precio por unidad<input name="precio_unitario" type="number" inputmode="decimal" min="0" step="0.01" required></label>
+      </div>
+      <div class="fila">
+        <label>Fecha<input name="fecha" type="date" required></label>
+        <label>Notas<input name="notas" placeholder="Ej: efectivo, descuento…"></label>
+      </div>
+      <div class="calculo">
+        <span>Total <strong id="venta-total">$0</strong></span>
+        <span>Ganancia <strong id="venta-ganancia">$0</strong></span>
+      </div>
+      <div class="acciones">
+        <button class="btn" value="ok">Confirmar venta</button>
+        <button class="btn secundario" value="cancel" formnovalidate>Cancelar</button>
       </div>
     </form>
   </dialog>
