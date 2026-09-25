@@ -32,6 +32,8 @@
 }
 
 * { box-sizing: border-box; }
+/* "hidden" siempre gana, aunque la clase del elemento diga display: flex */
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -66,7 +68,13 @@ h2 { margin: 0 0 12px; font-size: 1.3rem; }
 .tab { display: flex; align-items: center; gap: 6px; }
 .tab-icono { font-size: 1rem; }
 .tab.active { background: var(--acento); color: var(--acento-texto); font-weight: 600; }
-.icon-btn { background: none; border: 0; color: #fff; font-size: 1.4rem; cursor: pointer; }
+.topbar-acciones { display: flex; align-items: center; gap: 4px; }
+.icon-btn {
+  background: none; border: 0; color: #fff; font: inherit; font-size: 1.3rem; cursor: pointer;
+  text-decoration: none; padding: 6px 8px; border-radius: 8px; display: flex; align-items: center;
+}
+.icon-btn .solo-pc { font-size: .9rem; margin-left: 4px; }
+.icon-btn:hover { background: rgba(255,255,255,.1); }
 
 main { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .panel { display: none; }
@@ -211,6 +219,26 @@ input:focus, select:focus, textarea:focus { outline: 2px solid var(--acento); bo
   white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,.2);
 }
 
+/* ---------- Ayuda ---------- */
+.ayuda-intro p { margin: 0; color: var(--texto-suave); line-height: 1.5; }
+.ayuda { padding: 0; }
+.ayuda summary {
+  padding: 16px; cursor: pointer; font-weight: 600; font-size: 1.05rem; list-style: none;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.ayuda summary::-webkit-details-marker { display: none; }
+.ayuda summary::after { content: '+'; font-size: 1.4rem; color: var(--texto-suave); }
+.ayuda[open] summary::after { content: '−'; }
+.ayuda[open] summary { border-bottom: 1px solid var(--borde); }
+.ayuda ul { margin: 0; padding: 14px 16px 16px 34px; line-height: 1.6; }
+.ayuda li { margin-bottom: 6px; }
+.ayuda .badge { vertical-align: middle; }
+.tabla-ayuda { width: 100%; border-collapse: collapse; font-size: .92rem; }
+.tabla-ayuda th, .tabla-ayuda td { text-align: left; padding: 10px 16px; border-bottom: 1px solid var(--borde); vertical-align: top; }
+.tabla-ayuda th { color: var(--texto-suave); font-weight: 500; font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.tabla-ayuda td:first-child { font-weight: 600; width: 38%; }
+.tabla-ayuda tr:last-child td { border-bottom: 0; }
+
 /* ---------- Diálogo, toast y carga ---------- */
 dialog {
   border: 0; border-radius: var(--radio); padding: 20px; width: min(480px, 92vw);
@@ -297,6 +325,15 @@ dialog::backdrop { background: rgba(0, 0, 0, .5); }
   .segmento .seg { flex: 1; }
   .periodo-nav { justify-content: space-between; }
   .eje-g, .valor-g { font-size: 16px; } /* el SVG se achica en celu: letras más grandes para compensar */
+
+  /* --- Ayuda: la tabla pasa a "tarjetitas" apiladas --- */
+  .tabla-ayuda th { display: none; }
+  .tabla-ayuda td { display: block; width: auto !important; border: 0; padding: 0 14px; }
+  .tabla-ayuda td:first-child { padding-top: 12px; }
+  .tabla-ayuda td:last-child { padding-bottom: 12px; border-bottom: 1px solid var(--borde); color: var(--texto-suave); }
+  .ayuda ul { padding-left: 30px; }
+  .card.ayuda { padding: 0; } /* si no, gana el padding de .card de arriba */
+  .ayuda summary { padding: 14px; }
 
   /* --- Consultas --- */
   .lista li { gap: 6px; }

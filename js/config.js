@@ -7,6 +7,10 @@
 const CONFIG = {
   API_URL: 'https://script.google.com/macros/s/AKfycbwauZurwO2YQImQt6EZRkwXZ_9kIjgVkHf93ni4u4Q6nSpl-MStYhFGfv96mB17TVbz/exec',
 
+  // Link a la hoja de cálculo (botón 📊). Si lo dejás vacío, la página
+  // lo pide solo al Apps Script. Solo completalo si querés forzar otro link.
+  SHEET_URL: '',
+
   // Categorías del selector al cargar una prenda.
   // Agregá, sacá o reordená a gusto: la página las toma de acá.
   CATEGORIAS: [

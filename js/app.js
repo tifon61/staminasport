@@ -99,6 +99,15 @@ function irA(tab) {
   document.querySelectorAll('.panel').forEach((p) => p.classList.toggle('active', p.id === tab));
 }
 document.querySelectorAll('.tab').forEach((b) => b.addEventListener('click', () => irA(b.dataset.tab)));
+$('#btn-ayuda').addEventListener('click', () => { irA('ayuda'); window.scrollTo(0, 0); });
+
+/** Muestra el botón 📊 solo si sabemos la dirección de la hoja. */
+function mostrarBotonHoja(url) {
+  const btn = $('#btn-hoja');
+  btn.hidden = !url;
+  if (url) btn.href = url;
+}
+mostrarBotonHoja(CONFIG.SHEET_URL); // si está en config.js, aparece aunque todavía no cargó nada
 
 // ---------- 3. Stock ----------
 
@@ -113,6 +122,7 @@ async function cargarDatos() {
   estado.stock = datos.stock;
   estado.consultas = datos.consultas;
   estado.ventas = datos.ventas || []; // || [] por si el Apps Script es una versión vieja
+  mostrarBotonHoja(CONFIG.SHEET_URL || datos.sheet_url);
   renderTodo();
 }
 

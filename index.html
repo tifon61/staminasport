@@ -26,7 +26,11 @@
       <button class="tab" data-tab="ventas"><span class="tab-icono">💰</span><span>Ventas</span></button>
       <button class="tab" data-tab="consultas"><span class="tab-icono">💬</span><span>Consultas</span></button>
     </nav>
-    <button id="btn-config" class="icon-btn" title="Cambiar clave">⚙</button>
+    <div class="topbar-acciones">
+      <a id="btn-hoja" class="icon-btn" target="_blank" rel="noopener" title="Abrir la hoja de cálculo" hidden>📊<span class="solo-pc"> Hoja</span></a>
+      <button id="btn-ayuda" class="icon-btn" title="Cómo se usa">❓<span class="solo-pc"> Ayuda</span></button>
+      <button id="btn-config" class="icon-btn" title="Cambiar clave">⚙</button>
+    </div>
   </header>
 
   <main>
@@ -173,6 +177,103 @@
           <ol id="ranking" class="ranking"></ol>
         </div>
       </div>
+    </section>
+    <!-- ==================== AYUDA ==================== -->
+    <section id="ayuda" class="panel">
+      <div class="card ayuda-intro">
+        <h2>❓ Cómo se usa la página</h2>
+        <p>Todo lo que hacés acá se guarda en tu <strong>hoja de cálculo de Google</strong> (botón 📊 arriba).
+          La página solo muestra y calcula; los datos viven en la hoja. Tocá cada tema para ver el detalle.</p>
+      </div>
+
+      <details class="card ayuda" open>
+        <summary>⚡ Resumen rápido: si hacés esto → pasa esto</summary>
+        <table class="tabla-ayuda">
+          <tr><th>Si hacés…</th><th>Pasa…</th></tr>
+          <tr><td>Cargás una prenda</td><td>Se agrega una fila en la hoja <b>Stock</b> y aparece en la pestaña Stock.</td></tr>
+          <tr><td>Le ponés foto</td><td>Se achica y se guarda en tu Google Drive (carpeta “Stamine - Fotos”).</td></tr>
+          <tr><td>Cambiás el costo o el %</td><td>Cambia el precio de venta sugerido. Las ventas ya hechas <b>no</b> cambian.</td></tr>
+          <tr><td>Tocás <b>Vender</b></td><td>Se resta del stock <b>y</b> se guarda la venta en la hoja <b>Ventas</b>.</td></tr>
+          <tr><td>Vendés con descuento</td><td>Poné el precio real en la venta: el historial muestra lo que cobraste.</td></tr>
+          <tr><td>Anulás una venta</td><td>Se borra de Ventas y las prendas <b>vuelven</b> al stock.</td></tr>
+          <tr><td>Una prenda llega a 0</td><td>Se oculta del Stock (no se borra). Tildá “Ver sin stock” para verla.</td></tr>
+          <tr><td>Borrás una prenda</td><td>Desaparece de la hoja Stock. Sus ventas pasadas <b>quedan</b> en el historial.</td></tr>
+          <tr><td>Registrás una consulta</td><td>Suma en el ranking “Qué comprar”.</td></tr>
+          <tr><td>Marcás “Ya lo compré”</td><td>La consulta sale del ranking, pero queda en el historial tachada.</td></tr>
+          <tr><td>Editás la hoja a mano</td><td>La página lo muestra al tocar ↻ Actualizar o recargar.</td></tr>
+        </table>
+      </details>
+
+      <details class="card ayuda">
+        <summary>👕 Cargar una prenda</summary>
+        <ul>
+          <li><b>Nombre, cantidad, costo y %</b> son obligatorios (tienen *).</li>
+          <li><b>Costo por unidad</b>: lo que pagaste por <i>cada</i> prenda, no el total de la compra.</li>
+          <li><b>% de ganancia</b>: cuánto le sumás al costo. Precio de venta = costo + costo × %.
+            Ej: costo $10.000 con 60% → se vende a $16.000 (ganás $6.000). Lo ves calculado antes de guardar.</li>
+          <li><b>Fecha de compra</b>: viene la de hoy. Si la cambiás, cambia el “hace cuánto la tenés”.</li>
+          <li><b>Foto</b>: 📷 abre la cámara, 🖼️ la galería. Es opcional.</li>
+          <li><b>Mismo modelo en varios talles</b>: cargá una prenda por talle, así sabés cuál se vende.</li>
+          <li><b>Editar</b> una prenda abre este mismo formulario con sus datos. Si no elegís foto nueva, se mantiene la anterior.</li>
+        </ul>
+      </details>
+
+      <details class="card ayuda">
+        <summary>📦 Ver el stock</summary>
+        <ul>
+          <li><b>Arriba</b>: cuántas unidades tenés, cuánta plata pusiste (<i>Invertido</i>), cuánto vale todo a precio de venta y la <i>Ganancia potencial</i> si vendieras todo.</li>
+          <li><b>Antigüedad</b> de cada prenda:
+            <span class="badge nuevo">menos de 30 días</span>
+            <span class="badge medio">30 a 90 días</span>
+            <span class="badge viejo">más de 90 días</span>.
+            Las rojas conviene liquidarlas o ponerles promo.</li>
+          <li>Podés <b>buscar</b>, filtrar por <b>categoría</b> y <b>ordenar</b> (ej: “Más antiguas” te muestra primero lo que hace más que tenés).</li>
+          <li>Las prendas con stock 0 se ocultan. Tildá <b>Ver sin stock</b> para verlas (por ejemplo, para reponer).</li>
+        </ul>
+      </details>
+
+      <details class="card ayuda">
+        <summary>💰 Vender y ver el historial</summary>
+        <ul>
+          <li>Tocá <b>Vender</b> en la prenda. Elegí cantidad, precio (viene el sugerido) y fecha.</li>
+          <li>No te deja vender más de lo que hay en stock.</li>
+          <li>Si cargás una venta con <b>fecha pasada</b>, se cuenta en el mes de esa fecha.</li>
+          <li>En <b>Ventas</b> elegí <i>Mes</i> o <i>Año</i> y movete con ◀ ▶. Tocá una barra del gráfico para ir a ese mes.</li>
+          <li><b>Ganancia</b> = lo que cobraste − lo que te costaron esas prendas.</li>
+          <li>¿Te equivocaste? <b>Anular</b> borra la venta y devuelve las prendas al stock.</li>
+        </ul>
+      </details>
+
+      <details class="card ayuda">
+        <summary>💬 Consultas y qué comprar</summary>
+        <ul>
+          <li>Cada vez que alguien te pregunta por algo que no tenés, registralo. Si te lo vuelven a pedir, tocá <b>+1</b>.</li>
+          <li>El ranking <b>Qué comprar</b> junta las consultas con el <b>mismo nombre</b> (no importan mayúsculas).
+            Escribí siempre igual: “Calza negra” y “Calza color negro” cuentan como productos distintos. El autocompletado te ayuda.</li>
+          <li>Te avisa si ya tenés en stock una prenda cuyo nombre contiene lo consultado.</li>
+          <li>Cuando lo compres, tocá <b>Ya lo compré</b>: sale del ranking.</li>
+        </ul>
+      </details>
+
+      <details class="card ayuda">
+        <summary>📊 La hoja de cálculo</summary>
+        <ul>
+          <li>Tiene 3 pestañas: <b>Stock</b>, <b>Ventas</b> y <b>Consultas</b>. Podés mirarla, filtrarla o descargarla cuando quieras.</li>
+          <li>Podés corregir datos a mano (un precio, un nombre), pero <b>no cambies la primera fila</b> (los títulos) <b>ni la columna id</b>: la página los usa para encontrar cada cosa.</li>
+          <li>Si borrás una fila a mano, desaparece de la página. No se puede deshacer desde la página (sí con Ctrl+Z en la hoja).</li>
+        </ul>
+      </details>
+
+      <details class="card ayuda">
+        <summary>🔧 Si algo no funciona</summary>
+        <ul>
+          <li><b>“Clave incorrecta”</b>: tocá ⚙ y escribí la clave igual que en el Apps Script (mayúsculas incluidas).</li>
+          <li><b>“No se pudo conectar”</b>: revisá tu internet; si sigue, el Apps Script tiene que estar implementado con acceso “Cualquier usuario”.</li>
+          <li><b>No veo un cambio</b>: tocá ↻ Actualizar. Si cambiaste el código, recargá con Ctrl+F5.</li>
+          <li><b>“Acción desconocida”</b>: el Apps Script es una versión vieja. Pegá el código nuevo y publicá una <i>Nueva versión</i>.</li>
+          <li><b>No aparece el botón 📊</b>: mismo caso, actualizá el Apps Script.</li>
+        </ul>
+      </details>
     </section>
   </main>
 

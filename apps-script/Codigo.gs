@@ -46,6 +46,8 @@ function doGet(e) {
       stock: leerHoja('Stock'),
       consultas: leerHoja('Consultas'),
       ventas: leerHoja('Ventas'),
+      // La dirección de este Sheet, para el botón "📊 Hoja" de la página.
+      sheet_url: SpreadsheetApp.getActiveSpreadsheet().getUrl(),
     };
   });
 }
