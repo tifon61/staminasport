@@ -1,6 +1,6 @@
 /**
  * ============================================================
- *  STAMINA - Backend en Google Apps Script
+ *  STAMINE - Backend en Google Apps Script
  * ============================================================
  *  Este archivo vive dentro de tu Google Sheet (Extensiones > Apps Script).
  *  Funciona como una pequeña "API": la página web le manda pedidos
@@ -21,7 +21,7 @@
 const API_KEY = 'cambiame-por-una-clave-secreta';
 
 // Nombre de la carpeta de Drive donde se guardan las fotos.
-const CARPETA_FOTOS = 'Stamina - Fotos';
+const CARPETA_FOTOS = 'Stamine - Fotos';
 
 // Columnas de cada hoja. El orden define el orden en el Sheet.
 const HOJAS = {

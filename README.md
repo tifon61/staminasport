@@ -1,6 +1,6 @@
-# STAMINA · Control de stock
+# STAMINE · Control de stock
 
-Página web para el local **Stamina**: cargás las prendas que comprás (con foto), definís el % de ganancia, ves el stock con su valor de venta, cuánto tiempo hace que tenés cada prenda, y registrás las consultas de los clientes para saber qué comprar.
+Página web para el local **Stamine**: cargás las prendas que comprás (con foto), definís el % de ganancia, ves el stock con su valor de venta, cuánto tiempo hace que tenés cada prenda, y registrás las consultas de los clientes para saber qué comprar.
 
 - **Frontend:** HTML + CSS + JavaScript puro (sin frameworks), publicado en GitHub Pages.
 - **Base de datos:** una Google Sheet.
@@ -26,10 +26,10 @@ Navegador (GitHub Pages)  ──fetch──▶  Apps Script (doGet / doPost)  �
 
 ### 1. Crear la Google Sheet y el Apps Script
 
-1. Entrá a [sheets.new](https://sheets.new) y ponele de nombre **Stamina Stock**.
+1. Entrá a [sheets.new](https://sheets.new) y ponele de nombre **Stamine Stock**.
 2. Menú **Extensiones → Apps Script**.
 3. Borrá lo que haya en `Código.gs` y pegá todo el contenido de `apps-script/Codigo.gs`.
-4. Cambiá la línea `const API_KEY = '...'` por una clave tuya (ej: `stamina-2026-xyz`). **Anotala.**
+4. Cambiá la línea `const API_KEY = '...'` por una clave tuya (ej: `stamine-2026-xyz`). **Anotala.**
 5. Guardá (💾). Arriba, en el selector de funciones, elegí **`configurarInicial`** y tocá **▶ Ejecutar**.
    Google te va a pedir permisos (para usar tu Sheet y tu Drive): aceptá. Si aparece "Google no verificó esta app", tocá *Configuración avanzada → Ir a (proyecto)*. Es normal: la app es tuya.
    Esto crea las hojas **Stock** y **Consultas** y la carpeta de fotos en Drive.
