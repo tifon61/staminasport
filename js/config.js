@@ -5,5 +5,5 @@
  * en GitHub. La clave se carga desde el botón ⚙ de la página.
  */
 const CONFIG = {
-  API_URL: '', // ej: 'https://script.google.com/macros/s/XXXX/exec'
+  API_URL: 'https://script.google.com/macros/s/AKfycbwauZurwO2YQImQt6EZRkwXZ_9kIjgVkHf93ni4u4Q6nSpl-MStYhFGfv96mB17TVbz/exec',
 };
